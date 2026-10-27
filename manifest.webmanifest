@@ -1,16 +1,17 @@
 {
   "name": "Stemit Audio Studio",
   "short_name": "Stemit",
-  "description": "A private, browser-based audio layer extraction prototype.",
-  "start_url": "./index.html",
-  "scope": "./",
+  "start_url": "./",
   "display": "standalone",
-  "orientation": "portrait-primary",
   "background_color": "#101512",
   "theme_color": "#101512",
+  "description": "Private browser audio layer exploration tool.",
   "icons": [
-    {"src":"icons/stemit-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
-    {"src":"icons/stemit-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"},
-    {"src":"icons/stemit.svg","sizes":"any","type":"image/svg+xml","purpose":"any"}
+    {
+      "src": "icons/stemit.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
   ]
 }
