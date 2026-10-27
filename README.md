@@ -1,27 +1,40 @@
-# Stemit Audio Studio — PWA prototype
+# Stemit PWA
 
-A lightweight, installable progressive web app for testing an audio layer-extraction workflow on phones and desktop browsers.
+Stemit is a mobile-first, browser-based audio layer exploration tool.
 
-## Current functionality
-- Select or drag in a browser-supported audio file.
-- Extract a rough stereo **centre** layer (Vocal focus) or **side/difference** layer (Instrumental focus).
-- Listen, seek, mute, and export the processed result as 16-bit stereo WAV.
-- PWA manifest and service worker for installability and caching of the app shell.
-- Audio decoding and processing happen locally in the browser; no audio upload or account is used.
+## Current status
 
-## Important engine limitation
-This is a testable UI and signal-processing prototype, **not AI source separation**. Centre/side extraction cannot reliably separate vocals from instruments and works poorly with mono tracks or mixes with off-centre vocals. The next serious engine step is to integrate a real model such as a browser-compatible ONNX/Transformers pipeline or a secure server-side separation API. Do not present this prototype as production-quality AI separation.
+This daily update makes the existing `stemit-pwa` project GitHub-ready with:
+
+- PWA manifest and install metadata
+- accessible labels and keyboard-friendly controls
+- local file handling with no login
+- local WAV export
+- README and deployment notes
+- clear disclosure of the current engine limitation
+
+### Important engine note
+
+The current browser build uses **stereo centre/side extraction**. It is **not yet the full AI vocal-separation engine**. This is intentionally disclosed in the interface so the project does not present a prototype as a finished AI separator.
 
 ## Run locally
-A service worker requires localhost or HTTPS. From this folder, run:
+
+Open `index.html` with a local static server, for example:
 
 ```bash
-python -m http.server 8080
+python3 -m http.server 8080
 ```
 
-Then open `http://localhost:8080` in a modern browser. For phone testing, deploy the folder to an HTTPS static host (Netlify/Vercel/GitHub Pages), then open the link on the phone and use the browser's **Install app** or **Add to Home screen** option.
+Then visit `http://localhost:8080`.
 
-## Notes
-- Recommended input size: below 50 MB. A hard 100 MB guard is included; browser memory limits may be lower on older phones.
-- WAV export is uncompressed and can be much larger than the input file.
-- Google Fonts are optional decoration; the app's system fallback fonts still work offline.
+## Deploy
+
+This is a static PWA. It can be deployed to GitHub Pages, Netlify, Vercel, or any static host.
+
+## GitHub upload
+
+Upload the complete folder contents to the existing `stemit-pwa` repository. Do not create a duplicate repository.
+
+## Next engineering milestone
+
+Replace the centre/side extraction step in `app.js` with the real offline model pipeline (for example an ONNX/WebAssembly or Android native inference path) and then verify performance on low-resource Android hardware.
