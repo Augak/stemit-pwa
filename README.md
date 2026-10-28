@@ -35,6 +35,15 @@ This is a static PWA. It can be deployed to GitHub Pages, Netlify, Vercel, or an
 
 Upload the complete folder contents to the existing `stemit-pwa` repository. Do not create a duplicate repository.
 
-## Next engineering milestone
+## Offline engine progress
 
-Replace the centre/side extraction step in `app.js` with the real offline model pipeline (for example an ONNX/WebAssembly or Android native inference path) and then verify performance on low-resource Android hardware.
+This update adds `engine.js`, a model manifest, and a documented local-assets contract for a real ONNX/WebAssembly separation path. The adapter validates a local model, loads it through ONNX Runtime Web, and keeps model inference separate from the UI.
+
+The model weights and runtime are intentionally not bundled yet: a license-compatible model and local `vendor/ort.min.js` build still need to be selected, added, and tested on the target 4 GB Android device. Until then, the app continues to use the clearly labelled stereo centre/side fallback.
+
+### Next engineering steps
+
+1. Select a license-compatible vocal-separation model with a compatible tensor contract.
+2. Add the model to `models/stemit-vocal-separator.onnx` and update `models/manifest.json`.
+3. Bundle ONNX Runtime Web locally in `vendor/ort.min.js`.
+4. Wire the adapter into `app.js`, then benchmark memory, speed and output quality on Android.
