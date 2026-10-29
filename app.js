@@ -1,23 +1,67 @@
+import { separateWithLocalModel } from "./engine.js";
+
 const $ = (s) => document.querySelector(s);
-let sourceFile = null, sourceBuffer = null, outputBlob = null, audio = new Audio(), selectedMode = "vocals";
+let sourceFile = null, outputBlob = null, audio = new Audio(), selectedMode = "vocals";
 const audioFile = $("#audioFile"), fileCard = $("#fileCard"), processBtn = $("#processBtn"), progressWrap = $("#progressWrap"), resultSection = $("#resultSection"), progressBar = $("#progressBar"), progressPct = $("#progressPct"), progressText = $("#progressText"), waveform = $("#waveform");
-document.querySelectorAll(".mode-card").forEach(btn => btn.addEventListener("click", () => { document.querySelectorAll(".mode-card").forEach(b => b.classList.remove("selected")); btn.classList.add("selected"); selectedMode = btn.dataset.mode; }));
-audioFile.addEventListener("change", async (e) => { sourceFile = e.target.files?.[0] || null; if (!sourceFile) return; $("#fileName").textContent = sourceFile.name; $("#fileInfo").textContent = `${(sourceFile.size / 1024 / 1024).toFixed(1)} MB · ready to process`; fileCard.hidden = false; processBtn.disabled = false; sourceBuffer = null; });
-$("#removeFile").addEventListener("click", () => { audioFile.value = ""; sourceFile = null; sourceBuffer = null; fileCard.hidden = true; processBtn.disabled = true; resultSection.hidden = true; });
+
+document.querySelectorAll(".mode-card").forEach(btn => btn.addEventListener("click", () => {
+  document.querySelectorAll(".mode-card").forEach(b => b.classList.remove("selected"));
+  btn.classList.add("selected"); selectedMode = btn.dataset.mode;
+}));
+audioFile.addEventListener("change", e => {
+  sourceFile = e.target.files?.[0] || null; if (!sourceFile) return;
+  $("#fileName").textContent = sourceFile.name;
+  $("#fileInfo").textContent = `${(sourceFile.size / 1024 / 1024).toFixed(1)} MB · ready to process`;
+  fileCard.hidden = false; processBtn.disabled = false; resultSection.hidden = true;
+});
+$("#removeFile").addEventListener("click", () => { audioFile.value = ""; sourceFile = null; fileCard.hidden = true; processBtn.disabled = true; resultSection.hidden = true; });
 $("#newTrackBtn").addEventListener("click", () => $("#removeFile").click());
 function setProgress(p, text) { progressWrap.hidden = false; progressBar.style.width = `${p}%`; progressPct.textContent = `${p}%`; progressText.textContent = text; }
-function floatTo16BitPCM(view, offset, input) { for (let i = 0; i < input.length; i++, offset += 2) { const s = Math.max(-1, Math.min(1, input[i])); view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7fff, true); } }
-function writeString(view, offset, str) { for (let i = 0; i < str.length; i++) view.setUint8(offset+i, str.charCodeAt(i)); }
-function encodeWav(buffer) { const channels = 2, sampleRate = buffer.sampleRate, left = buffer.getChannelData(0), right = buffer.numberOfChannels > 1 ? buffer.getChannelData(1) : left; const interleaved = new Float32Array(left.length * 2); for (let i = 0, j = 0; i < left.length; i++, j += 2) { interleaved[j] = left[i]; interleaved[j+1] = right[i]; } const out = new ArrayBuffer(44 + interleaved.length * 2), view = new DataView(out); writeString(view,0,"RIFF"); view.setUint32(4,36+interleaved.length*2,true); writeString(view,8,"WAVE"); writeString(view,12,"fmt "); view.setUint32(16,16,true); view.setUint16(20,1,true); view.setUint16(22,channels,true); view.setUint32(24,sampleRate,true); view.setUint32(28,sampleRate*channels*2,true); view.setUint16(32,channels*2,true); view.setUint16(34,16,true); writeString(view,36,"data"); view.setUint32(40,interleaved.length*2,true); floatTo16BitPCM(view,44,interleaved); return new Blob([view],{type:"audio/wav"}); }
-function drawWave(data) { const ctx = waveform.getContext("2d"), w = waveform.width, h = waveform.height; ctx.clearRect(0,0,w,h); ctx.strokeStyle="#9fe870"; ctx.lineWidth=2; ctx.beginPath(); const step = Math.max(1, Math.floor(data.length / w)); for (let x=0;x<w;x++){ const i=x*step; const v=data[i]||0; const y=h/2-v*(h*.42); x===0?ctx.moveTo(x,y):ctx.lineTo(x,y); } ctx.stroke(); }
-async function processAudio() { if (!sourceFile) return; processBtn.disabled = true; try { setProgress(10,"Reading audio…"); const ctx = new AudioContext(); const arr = await sourceFile.arrayBuffer(); setProgress(35,"Decoding audio…"); const decoded = await ctx.decodeAudioData(arr); sourceBuffer = decoded; const out = ctx.createBuffer(2, decoded.length, decoded.sampleRate); const l = decoded.getChannelData(0), r = decoded.numberOfChannels > 1 ? decoded.getChannelData(1) : l, ol = out.getChannelData(0), or = out.getChannelData(1); for (let i=0;i<decoded.length;i++) { if (i % Math.max(1,Math.floor(decoded.length/45))===0) setProgress(35 + Math.floor(i/decoded.length*55), "Extracting layer…"); const centre = (l[i]+r[i])/2, side = (l[i]-r[i])/2; ol[i] = selectedMode === "vocals" ? centre : side; or[i] = selectedMode === "vocals" ? centre : -side; } outputBlob = encodeWav(out); drawWave(ol); $("#resultTitle").textContent = selectedMode === "vocals" ? "Vocal focus" : "Instrumental focus"; $("#resultSub").textContent = selectedMode === "vocals" ? "Stereo centre extraction" : "Stereo side extraction"; resultSection.hidden = false; setProgress(100,"Complete"); audio.src = URL.createObjectURL(outputBlob); audio.addEventListener("loadedmetadata",()=>$("#duration").textContent = fmt(audio.duration),{once:true}); await ctx.close(); } catch (err) { setProgress(0,"Could not process this file. Try a different browser-supported audio file."); console.error(err); } finally { processBtn.disabled = false; } }
+function floatTo16BitPCM(view, offset, input) { for (let i=0;i<input.length;i++,offset+=2){const s=Math.max(-1,Math.min(1,input[i]));view.setInt16(offset,s<0?s*0x8000:s*0x7fff,true);} }
+function writeString(view, offset, str) { for (let i=0;i<str.length;i++) view.setUint8(offset+i,str.charCodeAt(i)); }
+function encodeWavMono(samples, sampleRate) {
+  const out = new ArrayBuffer(44 + samples.length * 2), view = new DataView(out);
+  writeString(view,0,"RIFF"); view.setUint32(4,36+samples.length*2,true); writeString(view,8,"WAVE"); writeString(view,12,"fmt ");
+  view.setUint32(16,16,true); view.setUint16(20,1,true); view.setUint16(22,1,true); view.setUint32(24,sampleRate,true);
+  view.setUint32(28,sampleRate*2,true); view.setUint16(32,2,true); view.setUint16(34,16,true); writeString(view,36,"data");
+  view.setUint32(40,samples.length*2,true); floatTo16BitPCM(view,44,samples); return new Blob([view],{type:"audio/wav"});
+}
+function encodeWavStereo(buffer) {
+  const left=buffer.getChannelData(0), right=buffer.numberOfChannels>1?buffer.getChannelData(1):left, interleaved=new Float32Array(left.length*2);
+  for(let i=0,j=0;i<left.length;i++,j+=2){interleaved[j]=left[i];interleaved[j+1]=right[i];}
+  const out=new ArrayBuffer(44+interleaved.length*2),view=new DataView(out); writeString(view,0,"RIFF");view.setUint32(4,36+interleaved.length*2,true);writeString(view,8,"WAVE");writeString(view,12,"fmt ");view.setUint32(16,16,true);view.setUint16(20,1,true);view.setUint16(22,2,true);view.setUint32(24,buffer.sampleRate,true);view.setUint32(28,buffer.sampleRate*4,true);view.setUint16(32,4,true);view.setUint16(34,16,true);writeString(view,36,"data");view.setUint32(40,interleaved.length*2,true);floatTo16BitPCM(view,44,interleaved);return new Blob([view],{type:"audio/wav"});
+}
+function drawWave(data) { const ctx=waveform.getContext("2d"),w=waveform.width,h=waveform.height;ctx.clearRect(0,0,w,h);ctx.strokeStyle="#9fe870";ctx.lineWidth=2;ctx.beginPath();const step=Math.max(1,Math.floor(data.length/w));for(let x=0;x<w;x++){const v=data[x*step]||0,y=h/2-v*(h*.42);x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke(); }
 function fmt(s){ if(!isFinite(s)) return "0:00"; return `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,"0")}`; }
-processBtn.addEventListener("click", processAudio);
-$("#playBtn").addEventListener("click",()=>{ if(audio.paused){audio.play();$("#playBtn").textContent="Ⅱ"} else {audio.pause();$("#playBtn").textContent="▶"} });
+async function processAudio() {
+  if (!sourceFile) return; processBtn.disabled = true;
+  try {
+    setProgress(10,"Reading audio…"); const ctx = new AudioContext(); const decoded = await ctx.decodeAudioData(await sourceFile.arrayBuffer()); setProgress(30,"Preparing local engine…");
+    const channels = decoded.numberOfChannels, samples = channels > 1 ? new Float32Array(decoded.length * channels) : decoded.getChannelData(0);
+    if (channels > 1) { for (let i=0;i<decoded.length;i++) for (let c=0;c<channels;c++) samples[i*channels+c]=decoded.getChannelData(c)[i]; }
+    let resultSamples, usedAI = false;
+    if (selectedMode === "vocals" && window.ort) {
+      try { const ai = await separateWithLocalModel({samples, sampleRate:decoded.sampleRate, channels, onProgress:setProgress}); resultSamples = ai.vocals; usedAI = true; }
+      catch (e) { console.warn("AI engine unavailable, using stereo fallback.", e); }
+    }
+    if (!resultSamples) {
+      setProgress(40,"Using stereo fallback…"); const l=decoded.getChannelData(0),r=channels>1?decoded.getChannelData(1):l; resultSamples=new Float32Array(decoded.length);
+      for(let i=0;i<decoded.length;i++){const centre=(l[i]+r[i])/2,side=(l[i]-r[i])/2;resultSamples[i]=selectedMode==="vocals"?centre:side;if(i%Math.max(1,Math.floor(decoded.length/45))===0)setProgress(40+Math.floor(i/decoded.length*50),"Extracting layer…");}
+    }
+    outputBlob = encodeWavMono(resultSamples, decoded.sampleRate); drawWave(resultSamples);
+    $("#resultTitle").textContent = selectedMode === "vocals" ? "Vocal focus" : "Instrumental focus";
+    $("#resultSub").textContent = usedAI ? "Offline AI separation" : "Stereo fallback extraction";
+    resultSection.hidden = false; setProgress(100, usedAI ? "Offline AI separation complete" : "Stereo extraction complete");
+    audio.src = URL.createObjectURL(outputBlob); audio.addEventListener("loadedmetadata",()=>$("#duration").textContent=fmt(audio.duration),{once:true}); await ctx.close();
+  } catch (err) { setProgress(0,"Could not process this file. Try a browser-supported audio file."); console.error(err); }
+  finally { processBtn.disabled = false; }
+}
+processBtn.addEventListener("click",processAudio);
+$("#playBtn").addEventListener("click",()=>{if(audio.paused){audio.play();$("#playBtn").textContent="Ⅱ"}else{audio.pause();$("#playBtn").textContent="▶"}});
 audio.addEventListener("ended",()=>$("#playBtn").textContent="▶");
-audio.addEventListener("timeupdate",()=>{ $("#seekBar").value = audio.duration ? audio.currentTime/audio.duration*1000 : 0; $("#currentTime").textContent = fmt(audio.currentTime); });
-$("#seekBar").addEventListener("input",(e)=>{ if(audio.duration) audio.currentTime = e.target.value/1000*audio.duration; });
-$("#muteBtn").addEventListener("click",()=>{ audio.muted=!audio.muted; $("#muteBtn").textContent = audio.muted ? "Muted" : "♫"; });
-$("#downloadBtn").addEventListener("click",()=>{ if(!outputBlob)return; const a=document.createElement("a"); a.href=URL.createObjectURL(outputBlob); a.download=`stemit-${selectedMode}.wav`; a.click(); });
+audio.addEventListener("timeupdate",()=>{$("#seekBar").value=audio.duration?audio.currentTime/audio.duration*1000:0;$("#currentTime").textContent=fmt(audio.currentTime);});
+$("#seekBar").addEventListener("input",e=>{if(audio.duration)audio.currentTime=e.target.value/1000*audio.duration;});
+$("#muteBtn").addEventListener("click",()=>{audio.muted=!audio.muted;$("#muteBtn").textContent=audio.muted?"Muted":"♫";});
+$("#downloadBtn").addEventListener("click",()=>{if(!outputBlob)return;const a=document.createElement("a");a.href=URL.createObjectURL(outputBlob);a.download=`stemit-${selectedMode}.wav`;a.click();});
 $("#helpBtn").addEventListener("click",()=>$("#helpDialog").showModal());
 $("#closeHelp").addEventListener("click",()=>$("#helpDialog").close());
