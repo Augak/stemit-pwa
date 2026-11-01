@@ -1,6 +1,10 @@
 /**
  * Stemit offline separation engine adapter.
+ *
+ * The adapter intentionally fails closed when the local model contract is
+ * incomplete instead of presenting an unverified result as AI separation.
  */
+
 export const ENGINE_STATUS = {
   unavailable: "unavailable",
   ready: "ready",
@@ -36,8 +40,16 @@ export async function separateWithLocalModel({
     return r.json();
   });
 
-  if (!manifest.inputName || !manifest.outputNames?.length) {
-    throw new Error("Model manifest is missing inputName/outputNames.");
+  validateManifest(manifest);
+  await validateLocalModel(modelUrl);
+
+  const mono = channels > 1 ? mixToMono(samples, channels) : samples;
+  const expectedLength = manifest.inputShape?.[manifest.inputShape.length - 1];
+  if (Number.isInteger(expectedLength) && expectedLength !== mono.length) {
+    throw new Error(
+      "This model expects " + expectedLength + " samples, but the selected file has " + mono.length +
+      ". The UI fallback will be used until chunking is implemented."
+    );
   }
 
   const session = await ort.InferenceSession.create(modelUrl, {
@@ -45,23 +57,40 @@ export async function separateWithLocalModel({
     graphOptimizationLevel: "all"
   });
 
-  const mono = channels > 1 ? mixToMono(samples, channels) : samples;
-  const input = new ort.Tensor("float32", mono, [1, 1, mono.length]);
+  const input = new ort.Tensor("float32", mono, manifest.inputShape || [1, 1, mono.length]);
   onProgress(25, "Running offline AI model…");
   const results = await session.run({ [manifest.inputName]: input });
   const output = results[manifest.outputNames[0]];
   if (!output?.data) throw new Error("Model returned no audio output.");
-  onProgress(90, "Preparing separated audio…");
 
-  const vocals = Float32Array.from(output.data);
+  const vocals = flattenAudioOutput(output.data);
+  if (!vocals.length) throw new Error("Model returned an empty vocal track.");
+  if (vocals.length !== mono.length && !manifest.allowVariableOutputLength) {
+    throw new Error("Model output length does not match the input length.");
+  }
+
+  onProgress(90, "Preparing separated audio…");
   return {
     sampleRate,
     channels: 1,
     vocals,
     instrumental: manifest.instrumentalOutputName && results[manifest.instrumentalOutputName]
-      ? Float32Array.from(results[manifest.instrumentalOutputName].data)
+      ? flattenAudioOutput(results[manifest.instrumentalOutputName].data)
       : null
   };
+}
+
+function validateManifest(manifest) {
+  if (!manifest.inputName || !manifest.outputNames?.length) {
+    throw new Error("Model manifest is missing inputName/outputNames.");
+  }
+  if (!Array.isArray(manifest.inputShape) || manifest.inputShape.length !== 3) {
+    throw new Error("Model manifest must define a 3D inputShape such as [1, 1, 131072].");
+  }
+}
+
+function flattenAudioOutput(data) {
+  return Float32Array.from(data, Number);
 }
 
 function mixToMono(samples, channels) {
