@@ -1,8 +1,10 @@
 {
   "name": "stemit-vocal-separator",
-  "version": 1,
+  "version": 2,
   "inputName": "input",
+  "inputShape": [1, 1, 131072],
   "outputNames": ["vocals"],
   "instrumentalOutputName": "instrumental",
-  "notes": "Replace with a license-compatible ONNX model whose tensor contract matches engine.js."
+  "allowVariableOutputLength": false,
+  "notes": "Replace the placeholder contract only after selecting a license-compatible ONNX model with matching input and output tensors."
 }
