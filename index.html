@@ -1,67 +1,31 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#101512">
-  <meta name="description" content="Stemit is a private, browser-based audio layer exploration tool.">
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="icons/stemit.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css">
-  <title>Stemit — Audio Studio</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080d18"><meta name="description" content="Stemit Studio — split, shape and export your audio locally.">
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icons/stemit.svg" type="image/svg+xml"><link rel="stylesheet" href="styles.css">
+<title>Stemit Studio — Your Music. Your Stems.</title>
 </head>
 <body>
-  <main class="app-shell">
-    <header class="topbar">
-      <a class="brand" href="#top" aria-label="Stemit home">
-        <span class="brand-mark" aria-hidden="true">S</span>
-        <span>stemit<span class="brand-dot">.</span><small>AUDIO STUDIO</small></span>
-      </a>
-      <div class="topbar-actions">
-        <span class="local-badge"><i aria-hidden="true"></i> Local processing</span>
-        <button id="helpBtn" class="ghost-btn" type="button">Help</button>
-      </div>
-    </header>
-    <section id="top" class="hero" aria-labelledby="pageTitle">
-      <p class="eyebrow">YOUR SOUND, YOUR SPACE</p>
-      <h1 id="pageTitle">Make room for <em>every layer.</em></h1>
-      <p class="hero-copy">Explore the centre and side layers in your audio. No account is required, and your file stays in this browser.</p>
-    </section>
-    <section class="workspace" aria-labelledby="sourceHeading">
-      <div class="section-head"><div><span class="step-tag">01 / SOURCE</span><h2 id="sourceHeading">Bring in your audio</h2></div><span class="file-note">Private by default</span></div>
-      <label id="dropzone" class="dropzone" for="audioFile">
-        <input id="audioFile" type="file" accept="audio/*,.wav,.mp3,.m4a,.ogg,.flac,.aac">
-        <span class="upload-icon" aria-hidden="true">↑</span><strong>Choose an audio file</strong><span class="drop-sub">or drop it here</span>
-        <span class="format-note">MP3, WAV, M4A, OGG and other browser-supported audio</span>
-      </label>
-      <div id="fileCard" class="file-card" hidden><div class="file-art" aria-hidden="true">♫</div><div class="file-meta"><strong id="fileName">No file selected</strong><span id="fileInfo">Ready when you are</span></div><button id="removeFile" class="icon-btn" type="button" aria-label="Remove audio">×</button></div>
-    </section>
-    <section class="workspace" aria-labelledby="modeHeading">
-      <div class="section-head"><div><span class="step-tag">02 / LAYER</span><h2 id="modeHeading">Choose what to hear</h2></div></div>
-      <div class="mode-grid" role="group" aria-label="Audio layer">
-        <button class="mode-card selected" data-mode="vocals" type="button"><span class="mode-icon" aria-hidden="true">◉</span><span class="mode-title">Vocal focus</span><span class="mode-desc">Centre extraction for stereo mixes.</span><span class="mode-select">Selected ✓</span></button>
-        <button class="mode-card" data-mode="instrumental" type="button"><span class="mode-icon" aria-hidden="true">◌</span><span class="mode-title">Instrumental focus</span><span class="mode-desc">Side extraction to explore the stereo field.</span><span class="mode-select">Select ＋</span></button>
-      </div>
-      <div class="notice" role="note"><span aria-hidden="true">i</span><p><strong>Current engine:</strong> stereo centre/side extraction. This browser build is not yet the full AI separation engine, so results vary by track and are best with stereo audio.</p></div>
-      <button id="processBtn" class="primary-btn" type="button" disabled>Process audio <span aria-hidden="true">↗</span></button>
-      <div id="progressWrap" class="progress-wrap" hidden aria-live="polite"><div class="progress-label"><span id="progressText">Preparing audio…</span><span id="progressPct">0%</span></div><div class="progress-track"><div id="progressBar"></div></div></div>
-    </section>
-    <section id="resultSection" class="workspace" hidden aria-labelledby="resultHeading">
-      <div class="section-head"><div><span class="step-tag">03 / RESULT</span><h2 id="resultHeading">Your layer is ready</h2></div><span class="ready-pill"><i aria-hidden="true"></i> Processed locally</span></div>
-      <div class="result-card">
-        <div class="result-top"><div class="result-art" aria-hidden="true">≈</div><div class="result-meta"><strong id="resultTitle">Vocal focus</strong><span id="resultSub">Stereo centre extraction</span></div><span class="result-check" aria-label="Ready">✓</span></div>
-        <canvas id="waveform" width="720" height="76" aria-label="Audio waveform preview"></canvas>
-        <div class="player-row"><button id="playBtn" class="play-btn" type="button" aria-label="Play result">▶</button><div class="seek-area"><input id="seekBar" type="range" min="0" max="1000" value="0" aria-label="Seek audio"><div class="time-row"><span id="currentTime">0:00</span><span id="duration">0:00</span></div></div><button id="muteBtn" class="volume-btn" type="button" aria-label="Mute or unmute">♫</button></div>
-        <div class="result-actions"><button id="downloadBtn" class="primary-btn" type="button">Download WAV <span aria-hidden="true">↓</span></button><button id="newTrackBtn" class="secondary-btn" type="button">Try another track</button></div>
-      </div>
-    </section>
-    <section class="bottom-info" aria-label="About Stemit">
-      <div class="info-block"><span class="info-number">A</span><div><h3>Simple by design</h3><p>Choose a track, select a layer, and listen.</p></div></div>
-      <div class="info-block"><span class="info-number">B</span><div><h3>Private by default</h3><p>Audio is decoded and processed on your device.</p></div></div>
-    </section>
-    <footer><span>© 2026 Stemit Audio Studio</span><span>Built for listening, learning and making.</span></footer>
-  </main>
-  <dialog id="helpDialog"><div class="dialog-head"><div><span class="step-tag">QUICK GUIDE</span><h2>Getting started</h2></div><button id="closeHelp" class="icon-btn" type="button" aria-label="Close help">×</button></div><ol><li>Choose a stereo audio file.</li><li>Select Vocal focus or Instrumental focus.</li><li>Process, listen, and download the WAV output.</li></ol><p class="dialog-note">This version uses stereo extraction and is not the full AI vocal separation engine.</p></dialog>
-  <script src="./vendor/ort.min.js"></script>\n  <script type="module" src="app.js"></script>
-</body>
-</html>
+<div class="app">
+<header class="topbar"><a class="brand" href="#" aria-label="Stemit Studio home"><span class="brand-icon">S</span><span><b>stemit<span>.</span></b><small>STUDIO</small></span></a><div class="top-actions"><span class="privacy"><i></i> Runs in your browser</span><button class="icon-button" id="helpBtn" aria-label="Help">?</button></div></header>
+<main>
+<section class="intro"><div><p class="kicker">YOUR MUSIC. YOUR STEMS.</p><h1>Make space for<br><em>every layer.</em></h1><p class="lead">Bring a track into your workspace, separate its stereo layers, then shape and export your sound.</p></div><div class="intro-art" aria-hidden="true"><div class="orb orb-a"></div><div class="orb orb-b"></div><div class="wave-bars"></div></div></section>
+<section class="panel source-panel"><div class="section-title"><div><span class="step">01 / SOURCE</span><h2>Start with a track</h2></div><span class="muted">Your audio stays on this device</span></div>
+<label class="dropzone" id="dropzone" for="audioFile"><input id="audioFile" type="file" accept="audio/*,.wav,.mp3,.m4a,.ogg,.flac,.aac"><span class="upload-symbol">↑</span><b>Choose audio file</b><span>or drop it here</span><small>MP3 · WAV · M4A · OGG · FLAC (browser support varies)</small></label>
+<div class="file-row" id="fileCard" hidden><span class="file-symbol">♫</span><div class="file-info"><b id="fileName">No track</b><small id="fileMeta">Ready</small></div><button class="text-button" id="removeFile">Remove</button></div></section>
+<section class="panel"><div class="section-title"><div><span class="step">02 / SEPARATION</span><h2>Choose a separation mode</h2></div></div>
+<div class="mode-list"><button class="mode active" data-mode="stereo" type="button"><span class="mode-number">02</span><span><b>Stereo layers</b><small>Centre + side extraction. Available now.</small></span><span class="mode-state">Selected</span></button><div class="mode locked"><span class="mode-number">04</span><span><b>Four stems</b><small>Vocals, drums, bass and other.</small></span><span class="mode-state">Model needed</span></div><div class="mode locked"><span class="mode-number">06</span><span><b>Six stems</b><small>Vocals, drums, bass, guitar, piano and other.</small></span><span class="mode-state">Model needed</span></div></div>
+<div class="disclosure"><b>Engine status</b><p>Two-channel stereo extraction is available. Four- and six-stem neural separation will be enabled after a compatible model is integrated and tested. Stereo extraction is not the same as AI instrument separation.</p></div>
+<button id="processBtn" class="primary" disabled>Separate stereo layers <span>↗</span></button>
+<div class="progress" id="progressWrap" hidden><div><span id="progressText">Preparing audio…</span><b id="progressPct">0%</b></div><div class="progress-track"><i id="progressBar"></i></div></div></section>
+<section class="panel studio" id="studio" hidden><div class="section-title"><div><span class="step">03 / MIXER</span><h2>Your workspace</h2></div><span class="status"><i></i> Ready to mix</span></div>
+<div class="transport"><button id="playAll" class="play-button">▶</button><div class="transport-info"><b id="mixTitle">Stereo layer mix</b><small id="mixTime">0:00 / 0:00</small></div><button id="downloadMix" class="outline-button">Export mix ↓</button></div>
+<div id="tracks" class="tracks"></div>
+<div class="export-footer"><div><b>Export your work</b><small>Download each layer separately or export the current mix.</small></div><button id="newTrack" class="outline-button">New track</button></div></section>
+<section class="footer-note"><span class="shield">◇</span><div><b>Private by design</b><p>Audio processing happens locally in this browser. No account or upload is required.</p></div></section>
+</main>
+<footer><span>© 2026 Stemit Studio</span><span>Built for listening, learning and making.</span></footer></div>
+<dialog id="helpDialog"><div class="dialog-head"><div><span class="step">STUDIO GUIDE</span><h2>How Stemit works</h2></div><button id="closeHelp" class="icon-button">×</button></div><ol><li>Choose an audio file from your device.</li><li>Run the available stereo layer extraction.</li><li>Adjust each layer's volume, pan, mute or solo.</li><li>Export the mix or download individual WAV layers.</li></ol><p>Four- and six-stem separation are shown as planned modes and are not active until their neural model is integrated.</p></dialog>
+<script type="module" src="app.js"></script><script>if('serviceWorker' in navigator) addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));</script>
+</body></html>

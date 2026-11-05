@@ -1,49 +1,29 @@
-# Stemit PWA
+# Stemit Studio PWA
 
-Stemit is a mobile-first, browser-based audio layer exploration tool.
+Stemit Studio is a mobile-first, installable browser audio workspace. It processes selected audio locally in the browser; no account or upload is required.
 
-## Current status
+## Current working features
 
-This daily update makes the existing `stemit-pwa` project GitHub-ready with:
+- Installable PWA with offline app-shell caching
+- Local audio import and drag/drop
+- Stereo centre/side extraction into two independent mono layers
+- Mixer controls per layer: volume, pan, mute and solo
+- Mix preview and WAV export
+- Individual WAV export for each extracted layer
+- Clear disclosure of what is and is not implemented
 
-- PWA manifest and install metadata
-- accessible labels and keyboard-friendly controls
-- local file handling with no login
-- local WAV export
-- README and deployment notes
-- clear disclosure of the current engine limitation
+## Separation model status
 
-### Important engine note
+**The currently enabled mode is stereo centre/side extraction.** It is useful for exploring stereo mixes but it is not AI source separation and cannot reliably isolate vocals, drums, bass, guitar or piano.
 
-The current browser build uses **stereo centre/side extraction**. It is **not yet the full AI vocal-separation engine**. This is intentionally disclosed in the interface so the project does not present a prototype as a finished AI separator.
+Four-stem and six-stem modes are displayed as planned capabilities but remain disabled until a compatible, license-reviewed model and browser inference pipeline are integrated and tested on real Android devices. Do not represent these modes as available yet.
+
+The existing ONNX adapter and placeholder model manifest remain in the repository for future model integration. A real model file and bundled ONNX Runtime Web package are not included.
 
 ## Run locally
 
-Open `index.html` with a local static server, for example:
+Serve this folder from localhost or deploy it to GitHub Pages, Netlify or another static host. Opening the page directly as a file may prevent PWA features.
 
-```bash
-python3 -m http.server 8080
-```
+## Privacy
 
-Then visit `http://localhost:8080`.
-
-## Deploy
-
-This is a static PWA. It can be deployed to GitHub Pages, Netlify, Vercel, or any static host.
-
-## GitHub upload
-
-Upload the complete folder contents to the existing `stemit-pwa` repository. Do not create a duplicate repository.
-
-## Offline engine progress
-
-This update adds `engine.js`, a model manifest, and a documented local-assets contract for a real ONNX/WebAssembly separation path. The adapter validates a local model, loads it through ONNX Runtime Web, and keeps model inference separate from the UI.
-
-The model weights and runtime are intentionally not bundled yet: a license-compatible model and local `vendor/ort.min.js` build still need to be selected, added, and tested on the target 4 GB Android device. Until then, the app continues to use the clearly labelled stereo centre/side fallback.
-
-### Next engineering steps
-
-1. Select a license-compatible vocal-separation model with a compatible tensor contract.
-2. Add the model to `models/stemit-vocal-separator.onnx` and update `models/manifest.json`.
-3. Bundle ONNX Runtime Web locally in `vendor/ort.min.js`.
-4. Wire the adapter into `app.js`, then benchmark memory, speed and output quality on Android.
+Audio is decoded and processed in the browser. The app does not upload the selected track to a server.
