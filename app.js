@@ -18,6 +18,6 @@ function mix(){const active=tracks.filter(t=>!t.mute&&(!tracks.some(x=>x.solo)||
 $("#downloadMix").onclick=()=>{if(!tracks.length)return;download(mix(),"stemit-mix.wav")};
 $("#playAll").onclick=()=>{if(!tracks.length)return;downloadPreviewToggle()};
 let preview=null;function downloadPreviewToggle(){if(preview&&!preview.paused){preview.pause();$("#playAll").textContent="▶";return}if(!mixUrl)mixUrl=URL.createObjectURL(mix());if(!preview){preview=new Audio(mixUrl);preview.addEventListener("ended",()=>$("#playAll").textContent="▶")}preview.play();$("#playAll").textContent="Ⅱ"}
-$("#newTrack").onclick=()=>$("#removeFile").click();
+$("#newTrack").onclick=()=>{if(!tracks.length)return;tracks=tracks.map(t=>({...t,volume:1,pan:0,mute:false,solo:false}));if(preview){preview.pause();preview.currentTime=0;preview=null}if(mixUrl){URL.revokeObjectURL(mixUrl);mixUrl=null}$("#playAll").textContent="▶";renderTracks();progress(100,"Mixer controls reset");};
 $("#helpBtn").onclick=()=>$("#helpDialog").showModal();$("#closeHelp").onclick=()=>$("#helpDialog").close();
 if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
