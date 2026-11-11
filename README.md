@@ -18,11 +18,21 @@ Stemit Studio is a mobile-first, installable browser audio workspace. It process
 
 Four-stem and six-stem modes are displayed as planned capabilities but remain disabled until a compatible, license-reviewed model and browser inference pipeline are integrated and tested on real Android devices. Do not represent these modes as available yet.
 
-The existing ONNX adapter and placeholder model manifest remain in the repository for future model integration. A real model file and bundled ONNX Runtime Web package are not included.
+The ONNX adapter now includes manifest validation, runtime tensor-name preflight, fixed-shape and sample-rate checks, output validation, and explicit session cleanup. It remains an integration seam: it is not connected to the studio UI, and no real ONNX model or bundled ONNX Runtime Web package is included.
+
+The current adapter supports only fixed-shape, batch-1 mono waveform models. It does not yet implement resampling, chunking, overlap reconstruction, spectrogram preprocessing, dynamic shapes, or long-track memory management. See [the engine contract](docs/ENGINE_CONTRACT.md) before evaluating a model.
 
 ## Run locally
 
 Serve this folder from localhost or deploy it to GitHub Pages, Netlify or another static host. Opening the page directly as a file may prevent PWA features.
+
+## Engine tests
+
+Node.js 20 or newer is required. Install no dependencies; run:
+
+    npm test
+
+The tests use a mocked ONNX Runtime session to validate the adapter contract and resource lifecycle. They do not claim real model quality or performance.
 
 ## Privacy
 
