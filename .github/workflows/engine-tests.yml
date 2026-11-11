@@ -1,0 +1,29 @@
+name: Stemit engine contract tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "engine.js"
+      - "tests/**"
+      - "package.json"
+      - ".github/workflows/engine-tests.yml"
+  pull_request:
+    paths:
+      - "engine.js"
+      - "tests/**"
+      - "package.json"
+      - ".github/workflows/engine-tests.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run engine contract tests
+        run: npm test
