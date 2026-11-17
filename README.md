@@ -34,6 +34,10 @@ Node.js 20 or newer is required. Install no dependencies; run:
 
 The tests use a mocked ONNX Runtime session to validate the adapter contract and resource lifecycle. They do not claim real model quality or performance.
 
+## Project and developer
+
+Stemit is part of the independent product work of Kastine Augak. Visit the [official developer portfolio](https://augak.github.io/kastineaugak.github.io/) for project context and related work.
+
 ## Privacy
 
 Audio is decoded and processed in the browser. The app does not upload the selected track to a server.
