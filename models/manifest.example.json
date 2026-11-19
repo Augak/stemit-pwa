@@ -1,0 +1,15 @@
+{
+  "id": "replace-with-reviewed-model-id",
+  "status": "candidate",
+  "license": "replace-with-verified-license",
+  "sourceUrl": "https://example.com/model.onnx",
+  "revision": "replace-with-commit-or-release",
+  "sha256": "replace-with-64-character-sha256",
+  "inputName": "replace-with-real-input-name",
+  "inputShape": [1, 1, 131072],
+  "outputNames": ["replace-with-real-output-name"],
+  "instrumentalOutputName": null,
+  "sampleRate": 44100,
+  "preprocessing": "mono-waveform-float32",
+  "notes": "Template only. Do not copy values into models/manifest.json without graph inspection."
+}
