@@ -8,7 +8,7 @@ export function validateManifest(manifest, { modelExists = false } = {}) {
     errors.push("status must be candidate, approved, or blocked");
   }
   if (!manifest?.license || manifest.license.startsWith("replace-with-")) errors.push("verified license is required");
-  if (!/^https?:\\/\\//.test(manifest?.sourceUrl || "")) errors.push("sourceUrl must be http(s)");
+  if (!/^https?:\/\//.test(manifest?.sourceUrl || "")) errors.push("sourceUrl must be http(s)");
   if (!/^[0-9a-f]{64}$/i.test(manifest?.sha256 || "")) errors.push("sha256 must be a 64-character hex digest");
   if (!Number.isInteger(manifest?.sampleRate) || manifest.sampleRate <= 0) errors.push("sampleRate must be a positive integer");
   if (!Array.isArray(manifest?.inputShape) || manifest.inputShape.length !== 3) {

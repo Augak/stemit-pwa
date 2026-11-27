@@ -5,12 +5,14 @@ on:
     branches: [main]
     paths:
       - "engine.js"
+      - "docs/validate-manifest.mjs"
       - "tests/**"
       - "package.json"
       - ".github/workflows/engine-tests.yml"
   pull_request:
     paths:
       - "engine.js"
+      - "docs/validate-manifest.mjs"
       - "tests/**"
       - "package.json"
       - ".github/workflows/engine-tests.yml"

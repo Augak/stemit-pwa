@@ -19,6 +19,17 @@ test("accepts a contract-shaped candidate manifest", () => {
   assert.equal(validateManifest(base).ok, true);
 });
 
+test("accepts HTTP and HTTPS source URLs and rejects other schemes", () => {
+  for (const sourceUrl of ["http://example.com/model.onnx", "https://example.com/model.onnx"]) {
+    assert.equal(validateManifest({ ...base, sourceUrl }).ok, true);
+  }
+  for (const sourceUrl of ["ftp://example.com/model.onnx", "example.com/model.onnx", ""]) {
+    const result = validateManifest({ ...base, sourceUrl });
+    assert.equal(result.ok, false);
+    assert.match(result.errors.join(" "), /sourceUrl/);
+  }
+});
+
 test("rejects placeholder metadata", () => {
   const result = validateManifest({ ...base, sha256: "replace-with-64-character-sha256" });
   assert.equal(result.ok, false);
